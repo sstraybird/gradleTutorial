@@ -1,0 +1,52 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    myConfig
+}
+dependencies {
+    compile "org.apache.commons:commons-lang3:3.3.2"
+    myConfig "org.apache.commons:commons-lang3:3.3.2"
+}
+sourceSets {
+    main.java.srcDir "src/main"
+    test.java.srcDir "src/test"
+}
+
+jar {
+    from configurations.myConfig.collect { zipTree it }
+    manifest.attributes "Main-Class": "net.dermetfan.gradleTutorial.Main"
+}
+
+task hello(group:'greeting',description:'Greets you.'){
+    //configuration phase
+    println 'hello from the configuration phase'
+    ext.greeting = 'Hey,how\'s it going?'
+
+    //execution phase
+    doLast {println 'Hello!'}
+    doLast {println 'What\'s crackin?'}
+    doFirst { println 'Hey,I know this guy...'}
+    doLast {println "greeting: $greeting"}
+}
+
+task run(type: JavaExec, dependsOn: classes) {
+    main 'net.dermetfan.gradleTutorial.Main'
+    classpath sourceSets.main.runtimeClasspath
+    args 'hello World'
+}
+
+task runJar(type: Exec,dependsOn: jar) {
+    executable 'java'
+    args '-jar', "$jar.archivePath", "hello world"
+}
+
+task writeGreeting {
+    outputs.file 'greeting.txt'
+    doLast {
+        file('greeting.txt').text = 'Hello,fellow citizen!'
+    }
+}
